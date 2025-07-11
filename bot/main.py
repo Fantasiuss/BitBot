@@ -44,7 +44,7 @@ async def profile_context_menu(interaction:discord.Interaction, user:discord.Use
         await interaction.response.send_message(f"No profile found for {user.name}.",ephemeral=True)
         return
     
-    embed = discord.Embed(title=f"{user_data["username"]}'s Profile", color=discord.Color.blue())
+    embed = discord.Embed(title=f"{user_data['username']}'s Profile", color=discord.Color.blue())
     embed.add_field(name="Empire", value=user_data["empire"], inline=True)
     embed.add_field(name="Claim", value=user_data["claim"], inline=True)
     
