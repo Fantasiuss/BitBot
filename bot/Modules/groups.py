@@ -88,7 +88,7 @@ class GroupsCog(commands.Cog):
         
         data.Update("users",{"user_id":ctx.author.id},{group["group_type"].lower():group["name"]})
         
-        await ctx.reply(f"You have successfully joined {group["name"]}.",ephemeral=True)
+        await ctx.reply(f"You have successfully joined {group['name']}.",ephemeral=True)
         
     @group.command()
     @discord.app_commands.choices(type=[discord.app_commands.Choice(name="Empire",value="empire"),discord.app_commands.Choice(name="Claim",value="claim")])
