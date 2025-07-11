@@ -101,7 +101,7 @@ class GroupsCog(commands.Cog):
         
         data.Update("users",{"user_id":ctx.author.id},{type.value:'None'})
         
-        await ctx.reply(f"You have successfully left {group["name"]}.",ephemeral=True)
+        await ctx.reply(f"You have successfully left {group['name']}.",ephemeral=True)
     
 async def setup(bot:commands.Bot):
     """await bot.add_cog(GroupsCog())"""
