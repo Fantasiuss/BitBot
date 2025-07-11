@@ -22,7 +22,7 @@ async def send_register_modal(interaction:discord.Interaction):
                 
                 await interaction.response.send_message(f"Profile created for {profile['username']}!", ephemeral=True)
             except:
-                return await interaction.response.send_message(f"Error detected, profile has{"" if profile != None else " not"} been registered.",ephemeral=True)
+                return await interaction.response.send_message(f"Error detected, profile has{'' if profile != None else ' not'} been registered.",ephemeral=True)
             
             
         
