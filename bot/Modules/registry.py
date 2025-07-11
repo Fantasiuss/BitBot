@@ -20,7 +20,7 @@ class RegistryCog(commands.Cog):
             await ctx.send(f"No profile found for {user.name}.",ephemeral=True)
             return
         
-        embed = discord.Embed(title=f"{user_data["username"]}'s Profile", color=discord.Color.blue())
+        embed = discord.Embed(title=f"{user_data['username']}'s Profile", color=discord.Color.blue())
         embed.add_field(name="Empire", value=user_data["empire"], inline=True)
         embed.add_field(name="Claim", value=user_data["claim"], inline=True)
         
@@ -180,7 +180,7 @@ class RegistryCog(commands.Cog):
         index=1
         for user in members:
             if(index>10): break
-            description += f"`[{index}]`{user["username"]}: Level {str(user[profession.value.lower()])} {profession.value}\n"
+            description += f"`[{index}]`{user['username']}: Level {str(user[profession.value.lower()])} {profession.value}\n"
             index += 1
                 
         embed = discord.Embed(title=f"{profession.value.capitalize()} Leaderboards ({scope.capitalize()})",description=description)
