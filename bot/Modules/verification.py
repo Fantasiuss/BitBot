@@ -35,18 +35,20 @@ class VerificationCog(commands.Cog):
         except discord.Forbidden:
             return await ctx.reply("I do not have permission to send messages in this channel.", ephemeral=True)
             
-        
-        existing_message_data = data.GetOne("verification_messages", {"guild_id": ctx.guild.id, "channel_id": ctx.channel.id})
-        if existing_message_data:
-            guild = self.bot.get_guild(ctx.guild.id) or await self.bot.fetch_guild(ctx.guild.id)
-            if guild:
-                channel = guild.get_channel(ctx.channel.id) or await guild.fetch_channel(ctx.channel.id)
-                if channel:
-                    try:
-                        existing_message = await channel.fetch_message(existing_message_data["message_id"])
-                        await existing_message.delete()
-                    except discord.NotFound:
-                        print(f"Message {existing_message_data['message_id']} not found in channel {ctx.channel.id} of guild {ctx.guild.id}")
+        try:
+            existing_message_data = data.GetOne("verification_messages", {"guild_id": ctx.guild.id, "channel_id": ctx.channel.id})
+            if existing_message_data:
+                guild = constants.bot.get_guild(ctx.guild.id) or await self.bot.fetch_guild(ctx.guild.id)
+                if guild:
+                    channel = guild.get_channel(ctx.channel.id) or await guild.fetch_channel(ctx.channel.id)
+                    if channel:
+                        try:
+                            existing_message = await channel.fetch_message(existing_message_data["message_id"])
+                            await existing_message.delete()
+                        except discord.NotFound:
+                            print(f"Message {existing_message_data['message_id']} not found in channel {ctx.channel.id} of guild {ctx.guild.id}")
+        except:
+            pass
         
         data.Update("verification_messages", {"guild_id": ctx.guild.id},{"channel_id": ctx.channel.id, "message_id": message.id})
         await ctx.interaction.followup.send("Verification embed created successfully.", ephemeral=True)
