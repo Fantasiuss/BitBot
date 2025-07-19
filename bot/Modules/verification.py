@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from Helpers import constants,data,checks,functions
+import discord.ext
 
 class VerificationCog(commands.Cog):
     def __init__(self):
@@ -8,8 +9,9 @@ class VerificationCog(commands.Cog):
 
     @commands.hybrid_command()
     @checks.is_admin()
-    async def verification_embed(self, ctx: discord.Interaction):
+    async def verification_embed(self, ctx: commands.Context):
         """Creates a verification embed in the current channel."""
+        await ctx.interaction.response.defer(ephemeral=True)
         
         embed = discord.Embed(
             title="Verification",
@@ -47,7 +49,7 @@ class VerificationCog(commands.Cog):
                         print(f"Message {existing_message_data['message_id']} not found in channel {ctx.channel.id} of guild {ctx.guild.id}")
         
         data.Update("verification_messages", {"guild_id": ctx.guild.id},{"channel_id": ctx.channel.id, "message_id": message.id})
-        await ctx.reply("Verification embed created successfully.", ephemeral=True)
+        await ctx.interaction.followup.send("Verification embed created successfully.", ephemeral=True)
         
         
     
