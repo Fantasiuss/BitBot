@@ -4,6 +4,7 @@ from discord.ext import commands
 bot: commands.Bot = None
 guild: discord.Guild = None
 debug: bool = True
+cogs = ['Modules.claim','Modules.registry','Modules.verification']
 client = None
 database_path = os.path.join(os.path.dirname(__file__), '../../database/data.db')
 

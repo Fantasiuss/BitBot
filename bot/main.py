@@ -18,9 +18,8 @@ class BitBot(commands.Bot):
         data.initialize_data()
         await functions.refresh_verification_messages(self)
         
-        for filename in os.listdir('./bot/Modules'):
-            if filename.endswith('.py'):
-                await self.load_extension(f'Modules.{filename[:-3]}')
+        for filename in constants.cogs:
+            await self.load_extension(filename)
                     
     async def on_ready(self):
         constants.bot = self
