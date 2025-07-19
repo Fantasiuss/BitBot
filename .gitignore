@@ -1,3 +1,4 @@
 *.db
 *.env
 *.ps1
+bot/.env
