@@ -1,4 +1,4 @@
-import discord
+import discord,re
 from discord.ext import commands
 from Helpers import constants,data,functions
 
@@ -104,11 +104,11 @@ class RegistryCog(commands.Cog):
                         super().__init__(title=title, timeout=timeout)
                         user_data = data.GetOne("users", {"user_id": ctx.author.id})
                         for key in entries:
-                            self.add_item(discord.ui.TextInput(label=key,style=discord.TextStyle.short,required=False,placeholder=str(user_data[key.lower()])))
+                            self.add_item(discord.ui.TextInput(label=key,style=discord.TextStyle.short,required=False,default=str(user_data[key.lower()])))
                     
                     async def on_submit(self, interaction):
                         try:
-                            results = {item.label: int(item.value) for item in self.children}
+                            results = {item.label: int(item.value.replace(" ","")) for item in self.children}
                         except:
                             return await interaction.response.send_message("Provided value was not a number.",ephemeral=True)
                         
