@@ -61,19 +61,28 @@ class RegistryCog(commands.Cog):
     async def link(self, ctx:commands.Context, username:str):
         await ctx.interaction.response.defer(ephemeral=True, thinking=True)
         
+        print(f"Linking {ctx.author.id} to {username}")
+        
         user_data = data.GetOne("users", {"user_id": ctx.author.id})
         
         if user_data is not None:
+            print(f"User {ctx.author.id} is already linked to {user_data['username']}.")
             return await ctx.send(f"You are already linked to {user_data['username']}.", ephemeral=True)
         
         name_data = data.GetOne("users", {"username": username})
         
         if name_data is not None:
+            print(f"Username {username} is already taken by user {name_data['user_id']}.")
             return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
         data.Update("users", {"user_id": ctx.author.id}, {"username": username, "region":0})
         data.update_database(username)
         return await ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
+    
+    @commands.hybrid_command(description="Unlink your Discord account from your Bitcraft user.")
+    async def unlink(self,ctx):
+        data.Remove("users", {"user_id": ctx.author.id})
+        return await ctx.send("Your account has been unlinked.", ephemeral=True)
     
     '''DEPRECATED
     @discord.app_commands.user_install()
