@@ -72,8 +72,8 @@ class RegistryCog(commands.Cog):
         name_data = data.GetOne("users", {"username": username})
         
         if name_data is not None:
-            print(f"Username {username} is already taken by user {name_data['user_id']}.")
-            return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
+            print(f"Username {name_data["username"]} is already taken by user {name_data['user_id']}.")
+            return await ctx.send(f"The username `{name_data["username"]}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
         data.Update("users", {"user_id": ctx.author.id}, {"username": username, "region":0})
         data.update_database(username)

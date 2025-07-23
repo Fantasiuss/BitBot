@@ -61,6 +61,7 @@ class PlayerInformation:
         self.skills = {skill: level_from_total_xp(xp) for skill, xp in self.skillexp.items()}
 
 def get_player_info(username):
+    print("Fetching player info for:", username)
     # Step 1: Get the player ID from search results
     search_url = f"https://bitjita.com/players/__data.json?q={username}"
     search_response = requests.get(search_url)
