@@ -59,7 +59,7 @@ class RegistryCog(commands.Cog):
     
     @commands.hybrid_command(description="Link your Discord account to your Bitcraft user.")
     async def link(self, ctx:commands.Context, username:str):
-        ctx.interaction.response.defer(ephemeral=True, thinking=True)
+        await ctx.interaction.response.defer(ephemeral=True, thinking=True)
         
         user_data = data.GetOne("users", {"user_id": ctx.author.id})
         
@@ -71,7 +71,7 @@ class RegistryCog(commands.Cog):
         if name_data is not None:
             return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
-        data.Update("users", {"user_id": ctx.author.id}, {"username": username})
+        data.Update("users", {"user_id": ctx.author.id}, {"username": username, "region":0})
         data.update_database(username)
         return await ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
     
@@ -205,7 +205,7 @@ class RegistryCog(commands.Cog):
         
         embed.set_footer(text="")
         
-        await ctx.interaction.followup.send(embed=embed,ephemeral=True)
+        await ctx.interaction.followup.send(embed=embed)
     
     @commands.hybrid_command()
     async def lookup(self, ctx: commands.Context, username: str):
