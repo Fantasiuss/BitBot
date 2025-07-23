@@ -1,6 +1,6 @@
 import discord,re
 from discord.ext import commands
-from Helpers import constants,data,functions
+from Helpers import constants,data,functions,server
 
 class RegistryCog(commands.Cog):
     def __init__(self):
@@ -12,13 +12,16 @@ class RegistryCog(commands.Cog):
         """View your profile or another user's profile."""
         if user is None:
             user = ctx.author
-        
+            
         # Fetch user data from the database
         user_data = data.GetOne("users", {"user_id": user.id})
         
         if user_data is None:
             await ctx.send(f"No profile found for {user.name}.",ephemeral=True)
             return
+        
+        data.update_database(user_data['username'])
+        user_data = data.GetOne("users", {"user_id": user.id})
         
         embed = discord.Embed(title=f"{user_data['username']}'s Profile", color=discord.Color.blue())
         embed.add_field(name="Empire", value=user_data["empire"], inline=True)
@@ -37,20 +40,41 @@ class RegistryCog(commands.Cog):
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.set_author(name=user.name, icon_url=user.display_avatar.url)
         
-        embed.set_footer(text="Use /register to create a profile.")
+        embed.set_footer(text="Data provided by BitJita • Use /link to link your own profile.")
         
         await ctx.send(embed=embed)
     
+    
+    
+    '''DEPRECATED
     @commands.hybrid_command(description="Register a new user profile.")
     async def register(self, ctx:commands.Context):
         user_data = data.GetOne("users", {"user_id": ctx.author.id})
-        
+       
         if not (user_data is None):
             await ctx.send(f"You are already registered as {user_data['username']}.",ephemeral=True)
             return
-        
-        await functions.send_register_modal(ctx.interaction)
+       
+        await functions.send_register_modal(ctx.interaction)'''
     
+    @commands.hybrid_command(description="Link your Discord account to your Bitcraft user.")
+    async def link(self, ctx:commands.Context, username:str):
+        ctx.interaction.response.defer(ephemeral=True, thinking=True)
+        
+        user_data = data.GetOne("users", {"user_id": ctx.author.id})
+        
+        if user_data is not None:
+            return await ctx.send(f"You are already linked to {user_data['username']}.", ephemeral=True)
+        
+        name_data = data.GetOne("users", {"username": username})
+        
+        if name_data is not None:
+            return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
+        
+        data.update_database(username)
+        return ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
+    
+    '''DEPRECATED
     @discord.app_commands.user_install()
     @commands.hybrid_command(description="Update your profile.")
     @discord.app_commands.choices(options=[discord.app_commands.Choice(name="Professions",value="professions"),discord.app_commands.Choice(name="Skills",value="skills"),discord.app_commands.Choice(name="Empire", value="empire"), discord.app_commands.Choice(name="Claim", value="claim")])
@@ -158,37 +182,37 @@ class RegistryCog(commands.Cog):
                         selected = select.values
                         modal = SkillModal(selected)
                         await interaction.response.send_modal(modal)
-                await ctx.reply("Select up to 5 skills to update:", view=SelectSkills(),ephemeral=True)
+                await ctx.reply("Select up to 5 skills to update:", view=SelectSkills(),ephemeral=True)'''
             
     @commands.hybrid_command()
-    @discord.app_commands.choices(profession=constants.professions.choices+constants.skills.choices,scope=[discord.app_commands.Choice(name="Global",value="global"),discord.app_commands.Choice(name="Region",value="region"),discord.app_commands.Choice(name="Empire",value="empire"),discord.app_commands.Choice(name="Claim",value="claim")])
-    async def leaderboard(self,ctx,profession:discord.app_commands.Choice[str],scope:discord.app_commands.Choice[str]=None,):
+    @discord.app_commands.choices(profession=constants.professions.choices+constants.skills.choices)
+    async def leaderboard(self,ctx:commands.Context,profession:discord.app_commands.Choice[str]):
         """Shows the profession leaderboard"""
-        user_data = data.GetOne("users",{"user_id":ctx.author.id})
-        members = []
-        scope = scope.value if scope else "global"
-        match scope:
-            case "global":
-                members = data.Get("users")
-            case _:
-                if not user_data:
-                    return await ctx.reply("You need to register first using the `/register` command.", ephemeral=True)
-                
-                members = data.Get("users",{scope:user_data[scope]})
-        members.sort(key=lambda x: x[profession.value.lower()],reverse=True)
+        
+        await ctx.interaction.response.defer(ephemeral=True,thinking=True)
+        
+        users = server.get_leaderboard(profession.value)
+        
         description = ""
         index=1
-        for user in members:
+        for user in users:
             if(index>10): break
-            description += f"`[{index}]`{user['username']}: Level {str(user[profession.value.lower()])} {profession.value}\n"
+            description += f"`[{index}]`{user[0]}: Level {str(user[1])} {profession.value}\n"
             index += 1
                 
-        embed = discord.Embed(title=f"{profession.value.capitalize()} Leaderboards ({scope.capitalize()})",description=description)
+        embed = discord.Embed(title=f"{profession.value.capitalize()} Leaderboards",description=description)
         
-        embed.set_footer(text="Currently this is only among users registered in the bot. Game-wide leaderboards coming soon!\nTo fill in your own data, /register and /update_profile.")
+        embed.set_footer(text="")
         
-        await ctx.reply(embed=embed)
-        
+        await ctx.interaction.followup.send(embed=embed,ephemeral=True)
+    
+    @commands.hybrid_command()
+    async def lookup(self, ctx: commands.Context, username: str):
+        """Look up a user by their username."""
+        user_data = data.GetOne("users", {"username": username})
+        if user_data is None:
+            return await ctx.reply(f"No user found with the username `{username}`.", ephemeral=True)
+        return await ctx.reply(f"User found: <@{user_data["user_id"]}>", ephemeral=True)
     
 async def setup(bot:commands.Bot):
     await bot.add_cog(RegistryCog())

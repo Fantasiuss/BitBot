@@ -1,5 +1,5 @@
 import sqlite3
-from Helpers import constants
+from Helpers import constants,server
 
 def get_connection():
     """
@@ -95,6 +95,18 @@ def initialize_data():
     );""")
     
     close_connection(conn)
+
+def update_database(username):
+    """Updates from BitJita."""
+    data = server.PlayerInformation(username)
+    
+    Update("users", {"username": username}, {
+        "region": 3,
+        "empire": data.empires[0],
+        "claim": data.claims,
+        
+        **{skill.lower(): xp for skill, xp in data.skills.items()}
+    }, update=True)
 
 from discord.ext import commands
 class InjectionError(commands.CommandError):
