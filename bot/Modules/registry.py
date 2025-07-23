@@ -71,6 +71,7 @@ class RegistryCog(commands.Cog):
         if name_data is not None:
             return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
+        data.Update("users", {"user_id": ctx.author.id}, {"username": username})
         data.update_database(username)
         return await ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
     
