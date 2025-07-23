@@ -1,30 +1,107 @@
-import asyncio
-from spacetimedb_sdk.spacetimedb_async_client import SpacetimeDBAsyncClient
-import module_bindings
+import requests,math
 
-async def main():
-    # Initialize client with dummy 'module_bindings' folder (we won't use generated bindings)
-    client = SpacetimeDBAsyncClient(module_bindings)
+profession_ids = {
+    "Carpentry": 3,
+    "Construction": 15,
+    "Cooking": 13,
+    "Farming": 11,
+    "Fishing": 12,
+    "Foraging": 14,
+    "Forestry": 2,
+    "Hunting": 9,
+    "Leatherworking": 8,
+    "Masonry": 4,
+    "Merchanting": 15,
+    "Mining": 5,
+    "Sailing": 21,
+    "Scholar": 7,
+    "Slayer": 18,
+    "Smithing": 6,
+    "Tailoring": 10,
+    "Taming": 17
+}
 
-    async def on_connect():
-        print("Connected to STDB, subscribing to PlayerState data...")
-        # Subscribe to the PlayerState table with a simple query
-        client.subscribe("SELECT * FROM PlayerState", on_player_state_update)
+def level_from_total_xp(total_xp):
+    """
+    Calculate the level based on total XP.
+    """
+    if type(total_xp) is not int:
+        print(f"Invalid total XP type: {type(total_xp)}. Expected int.")
+        return 0
+    if total_xp < 0:
+        print(f"Negative total XP: {total_xp}. Returning level 0.")
+        return 0
+    return math.floor(1+(62/(9*math.log(2)))*math.log(total_xp/6020+1))
 
-    def on_player_state_update(data):
-        print("PlayerState data update received:")
-        # Data is a list of rows; just print raw JSON here
-        for row in data:
-            print(row)
+class PlayerInformation:
+    def __init__(self, username):
+        self.rawdata = get_player_info(username)
+        if not self.rawdata:
+            raise ValueError("Invalid username or player not found.")
+        self.data = self.rawdata["nodes"][1]["data"]
+        
+        self.reference = self.data[1]
+        
+        self.username = self.data[self.reference["username"]]
+        self.skillmap = self.data[self.reference["skillMap"]]
+        self.claims = ", ".join([self.data[self.data[x]["name"]] for x in self.data[self.reference["claims"]]])
+        self.empires = ", ".join([self.data[self.data[x]["empireName"]] for x in self.data[self.reference["empireMemberships"]]])
+        
+        self.skillexp = {
+            # Here's how the skillmap works. self.skillmap is a dictionary of 'skill #1 is item #'
+            # Go to item # and you'll find a dictionary with the ID, name, title and category.
+            # Go to ID - 1 and you'll find the total XP.
+        }
+        
+        for skill_id, skill_info in self.skillmap.items():
+            print(f"Skill {self.data[self.data[skill_info]["name"]]}: {self.data[self.data[int(skill_info)]["id"] - 1]}, ({skill_id,skill_info})")
+            if(self.data[self.data[skill_info]["name"]] == "ANY"): continue
+            self.skillexp[self.data[self.data[skill_info]["name"]]] = self.data[self.data[int(skill_info)]["id"] - 1]
+            
+        self.skills = {skill: level_from_total_xp(xp) for skill, xp in self.skillexp.items()}
 
-    # Connect and start listening to PlayerState changes
-    await client.run(
-        auth_token="your_auth_token_here",  # Replace with your actual token
-        module_url="https://bitcraft-beta-live.adokkf74uopr5hao3ww3hejuu.com/",
-        module_name="bitcraft-global",
-        on_connect=on_connect,
-        initial_queries=["SELECT * FROM PlayerState"]
-    )
+def get_player_info(username):
+    # Step 1: Get the player ID from search results
+    search_url = f"https://bitjita.com/players/__data.json?q={username}"
+    search_response = requests.get(search_url)
+    search_data = search_response.json()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        player_data = search_data["nodes"][1]["data"]
+        if str.lower(player_data[4]) != str.lower(username):
+            print(f"Username {username} not found in search results.")
+            return None
+        player_id = player_data[3]  # index 3 = entityId
+        print(f"Found player ID: {player_id}")
+    except (KeyError, IndexError, TypeError):
+        print("Error: Unable to extract player ID from search response.")
+        return None
+
+    # Step 2: Get the full player info using the ID
+    info_url = f"https://bitjita.com/players/{player_id}/__data.json"
+    info_response = requests.get(info_url)
+    info_data = info_response.json()
+
+    return info_data
+
+def get_leaderboard(profession:str,filter=None):
+    profession_id = profession_ids[profession.capitalize()]
+    url = f"https://bitjita.com/skills/__data.json?sortBy={profession_id}&sortOrder=desc&page=1"
+    
+    response = requests.get(url)
+    data = response.json()
+    
+    users = []
+    
+    for i in range(10):
+        ref = data["nodes"][1]["data"][1][i]
+        username = data["nodes"][1]["data"][data["nodes"][1]["data"][ref]["username"]]
+        skillref = data["nodes"][1]["data"][data["nodes"][1]["data"][ref]["skills"]]
+        level = data["nodes"][1]["data"][skillref[str(profession_id)]]
+        
+        users.append((username,level))
+    
+    return users
+
+    
+    
