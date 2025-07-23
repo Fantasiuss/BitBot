@@ -2,3 +2,4 @@
 *.env
 *.ps1
 bot/.env
+*.pyc
