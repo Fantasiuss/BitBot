@@ -72,7 +72,7 @@ class RegistryCog(commands.Cog):
             return await ctx.send(f"The username `{username}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
         data.update_database(username)
-        return ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
+        return await ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
     
     '''DEPRECATED
     @discord.app_commands.user_install()
