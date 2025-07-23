@@ -102,7 +102,7 @@ def update_database(username):
     
     Update("users", {"username": username}, {
         "region": 3,
-        "empire": data.empires[0],
+        "empire": data.empires,
         "claim": data.claims,
         
         **{skill.lower(): xp for skill, xp in data.skills.items()}
