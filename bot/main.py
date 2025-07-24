@@ -100,7 +100,7 @@ async def check_empires(ctx):
     for empire in empires:
         string += f"{empire['name']} - {empire['members']} members, owned by {empire}{empire['owner_mention']}\n"
     
-    ctx.send(string)
+    await ctx.send(string)
 
 @bot.check
 async def check_blacklist(ctx:commands.Context):
