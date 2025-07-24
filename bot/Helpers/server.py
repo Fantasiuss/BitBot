@@ -113,17 +113,22 @@ def get_leaderboard(profession:str,filter=None):
 def get_empire_data(empire_name):
     search_url = f"https://bitjita.com/empires/__data.json?q={empire_name.replace(' ', '+')}"
     search_response = call_api(search_url)
-    data = search_response.json()
+    search_data = search_response.json()
     
-    if "nodes" not in data or len(data["nodes"]) < 2:
-        print(f"Invalid data for empire {empire_name}.")
+    if "nodes" not in search_data or len(search_data["nodes"]) < 2:
+        print(f"Invalid search data for empire {empire_name}.")
         return None
     
+    empire_id = search_data["nodes"][1]["data"][3]
+    
+    url = f"https://bitjita.com/empires/{empire_id}/__data.json"
+    response = call_api(url)
+    data = response.json()
     empire_data = data["nodes"][1]["data"]
-    empire_ref = data["nodes"][1]["data"][data["nodes"][1]["data"][1][0]]
+    empire_ref = data["nodes"][1]["data"][1]
     
     return {
         "name": empire_data[empire_ref["name"]],
-        "members": empire_data[empire_ref["memberCount"]],
-        "owner": empire_data[empire_ref["leader"]]
+        "members": len(empire_data[empire_data[0]["members"]]),
+        "owner": empire_data[empire_data[empire_data[empire_data[0]["members"]][0]]["playerName"]],
     }
