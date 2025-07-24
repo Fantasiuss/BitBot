@@ -1,6 +1,7 @@
 import discord
 from Helpers import data,constants
 from discord.ext import commands
+from loguru import logger
 
 async def send_register_modal(interaction:discord.Interaction):
     class RegisterModal(discord.ui.Modal, title="Register Profile"):
@@ -56,7 +57,7 @@ async def refresh_verification_messages(bot: commands.Bot):
                     try:
                         message = await channel.fetch_message(message_data['message_id'])
                     except discord.NotFound:
-                        print(f"Message {message_data['message_id']} not found in channel {message_data['channel_id']} of guild {guild.name} (ID: {guild.id})")
+                        logger.debug(f"Message {message_data['message_id']} not found in channel {message_data['channel_id']} of guild {guild.name} (ID: {guild.id})")
                         continue
             
                     embed = discord.Embed(
@@ -78,8 +79,8 @@ async def refresh_verification_messages(bot: commands.Bot):
                     
                     await message.edit(embed=embed, view=view)
                 else:
-                    print(f"Channel {message_data['channel_id']} not found in guild {guild.name} (ID: {guild.id})")
+                    logger.debug(f"Channel {message_data['channel_id']} not found in guild {guild.name} (ID: {guild.id})")
             else:
-                print(f"Guild {message_data['guild_id']} not found for verification message refresh.")
+                logger.debug(f"Guild {message_data['guild_id']} not found for verification message refresh.")
     except Exception as e:
-        print(f"Error refreshing verification messages: {e}")
+        logger.debug(f"Error refreshing verification messages: {e}")

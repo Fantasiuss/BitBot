@@ -1,5 +1,6 @@
 import requests,math
 from ratelimit import limits, sleep_and_retry
+from loguru import logger
 
 profession_ids = {
     "Carpentry": 3,
@@ -32,10 +33,10 @@ def level_from_total_xp(total_xp):
     Calculate the level based on total XP.
     """
     if type(total_xp) is not int:
-        print(f"Invalid total XP type: {type(total_xp)}. Expected int.")
+        logger.debug(f"Invalid total XP type: {type(total_xp)}. Expected int.")
         return 1
     if total_xp < 0:
-        print(f"Negative total XP: {total_xp}. Returning level 0.")
+        logger.debug(f"Negative total XP: {total_xp}. Returning level 0.")
         return 1
     return math.floor(1+(62/(9*math.log(2)))*math.log(total_xp/6020+1))
 
@@ -60,14 +61,14 @@ class PlayerInformation:
         }
         
         for skill_id, skill_info in self.skillmap.items():
-            print(f"Skill {self.data[self.data[skill_info]["name"]]}: {self.data[self.data[int(skill_info)]["id"] - 1]}, ({skill_id,skill_info})")
+            logger.debug(f"Skill {self.data[self.data[skill_info]["name"]]}: {self.data[self.data[int(skill_info)]["id"] - 1]}, ({skill_id,skill_info})")
             if(self.data[self.data[skill_info]["name"]] == "ANY"): continue
             self.skillexp[self.data[self.data[skill_info]["name"]]] = self.data[self.data[int(skill_info)]["id"] - 1]
             
         self.skills = {skill: level_from_total_xp(xp) for skill, xp in self.skillexp.items()}
 
 def get_player_info(username):
-    print("Fetching player info for:", username)
+    logger.debug("Fetching player info for:", username)
     # Step 1: Get the player ID from search results
     search_url = f"https://bitjita.com/players/__data.json?q={username}"
     search_response = call_api(search_url)
@@ -76,12 +77,12 @@ def get_player_info(username):
     try:
         player_data = search_data["nodes"][1]["data"]
         if str.lower(player_data[4]) != str.lower(username):
-            print(f"Username {username} not found in search results.")
+            logger.debug(f"Username {username} not found in search results.")
             return None
         player_id = player_data[3]  # index 3 = entityId
-        print(f"Found player ID: {player_id}")
+        logger.debug(f"Found player ID: {player_id}")
     except (KeyError, IndexError, TypeError):
-        print("Error: Unable to extract player ID from search response.")
+        logger.debug("Error: Unable to extract player ID from search response.")
         return None
 
     # Step 2: Get the full player info using the ID
@@ -116,7 +117,7 @@ def get_empire_data(empire_name):
     search_data = search_response.json()
     
     if "nodes" not in search_data or len(search_data["nodes"]) < 2:
-        print(f"Invalid search data for empire {empire_name}.")
+        logger.debug(f"Invalid search data for empire {empire_name}.")
         return None
     
     empire_id = search_data["nodes"][1]["data"][3]

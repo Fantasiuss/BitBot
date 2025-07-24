@@ -1,6 +1,7 @@
 import discord,re
 from discord.ext import commands
 from Helpers import constants,data,functions,server
+from loguru import logger
 
 class RegistryCog(commands.Cog):
     def __init__(self):
@@ -61,18 +62,18 @@ class RegistryCog(commands.Cog):
     async def link(self, ctx:commands.Context, username:str):
         await ctx.interaction.response.defer(ephemeral=True, thinking=True)
         
-        print(f"Linking {ctx.author.id} to {username}")
+        logger.debug(f"Linking {ctx.author.id} to {username}")
         
         user_data = data.GetOne("users", {"user_id": ctx.author.id})
         
         if user_data is not None:
-            print(f"User {ctx.author.id} is already linked to {user_data['username']}.")
+            logger.debug(f"User {ctx.author.id} is already linked to {user_data['username']}.")
             return await ctx.send(f"You are already linked to {user_data['username']}.", ephemeral=True)
         
         name_data = data.GetOne("users", {"username": username})
         
         if name_data is not None:
-            print(f"Username {name_data["username"]} is already taken by user {name_data['user_id']}.")
+            logger.debug(f"Username {name_data["username"]} is already taken by user {name_data['user_id']}.")
             return await ctx.send(f"The username `{name_data["username"]}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
         data.Update("users", {"user_id": ctx.author.id}, {"username": username, "region":0})

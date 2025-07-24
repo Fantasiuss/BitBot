@@ -1,6 +1,7 @@
 import discord, discord.ext, os, json, datetime
 from discord.ext import commands
 from dotenv import load_dotenv
+from loguru import logger
 
 from Helpers import constants,data,functions,server
 
@@ -23,11 +24,11 @@ class BitBot(commands.Bot):
                     
     async def on_ready(self):
         constants.bot = self
-        print(f'Logged in as {self.user.name} (ID: {self.user.id})')
-        print('------')
+        logger.debug(f'Logged in as {self.user.name} (ID: {self.user.id})')
+        logger.debug('------')
         for guild in self.guilds:
             
-            print(f'Connected to guild: {guild.name} (ID: {guild.id})')
+            logger.debug(f'Connected to guild: {guild.name} (ID: {guild.id})')
             data.command_line(f"INSERT OR IGNORE INTO guilds (guild_id) VALUES ({guild.id})")
 
 bot = BitBot()
@@ -91,7 +92,7 @@ async def check_empires(ctx):
             
             empires.append(empire_data)
         else:
-            print(f"Empire {empire} not found or has no data.")
+            logger.debug(f"Empire {empire} not found or has no data.")
             empires.append({"name":empire,"members":0,"owner":"NOBODY","owner_mention":""})
 
     
@@ -115,13 +116,13 @@ async def check_blacklist(ctx:commands.Context):
 async def on_guild_join(guild:discord.Guild):
     """Event triggered when the bot joins a new guild."""
     data.Update("guilds",{"guild_id": guild.id})
-    print(f"Joined new guild: {guild.name} (ID: {guild.id})")
+    logger.debug(f"Joined new guild: {guild.name} (ID: {guild.id})")
     
 @bot.event
 async def on_guild_remove(guild:discord.Guild):
     """Event triggered when the bot is removed from a guild."""
     data.Remove("guilds", {"guild_id": guild.id})
-    print(f"Removed from guild: {guild.name} (ID: {guild.id})")
+    logger.debug(f"Removed from guild: {guild.name} (ID: {guild.id})")
 
 if __name__ == "__main__":
     bot.run(TOKEN)
