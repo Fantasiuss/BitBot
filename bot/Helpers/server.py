@@ -1,4 +1,5 @@
 import requests,math
+from ratelimit import limits, sleep_and_retry
 
 profession_ids = {
     "Carpentry": 3,
@@ -21,16 +22,21 @@ profession_ids = {
     "Taming": 17
 }
 
+@sleep_and_retry
+@limits(calls=5, period=1)
+def call_api(url):
+    return requests.get(url)
+
 def level_from_total_xp(total_xp):
     """
     Calculate the level based on total XP.
     """
     if type(total_xp) is not int:
         print(f"Invalid total XP type: {type(total_xp)}. Expected int.")
-        return 0
+        return 1
     if total_xp < 0:
         print(f"Negative total XP: {total_xp}. Returning level 0.")
-        return 0
+        return 1
     return math.floor(1+(62/(9*math.log(2)))*math.log(total_xp/6020+1))
 
 class PlayerInformation:
@@ -64,7 +70,7 @@ def get_player_info(username):
     print("Fetching player info for:", username)
     # Step 1: Get the player ID from search results
     search_url = f"https://bitjita.com/players/__data.json?q={username}"
-    search_response = requests.get(search_url)
+    search_response = call_api(search_url)
     search_data = search_response.json()
 
     try:
@@ -80,7 +86,7 @@ def get_player_info(username):
 
     # Step 2: Get the full player info using the ID
     info_url = f"https://bitjita.com/players/{player_id}/__data.json"
-    info_response = requests.get(info_url)
+    info_response = call_api(info_url)
     info_data = info_response.json()
 
     return info_data
@@ -89,7 +95,7 @@ def get_leaderboard(profession:str,filter=None):
     profession_id = profession_ids[profession.capitalize()]
     url = f"https://bitjita.com/skills/__data.json?sortBy={profession_id}&sortOrder=desc&page=1"
     
-    response = requests.get(url)
+    response = call_api(url)
     data = response.json()
     
     users = []
@@ -105,34 +111,19 @@ def get_leaderboard(profession:str,filter=None):
     return users
 
 def get_empire_data(empire_name):
-    search_url = f"https://bitjita.com/empires/__data.json?q={empire_name}"
-    search_response = requests.get(search_url)
-    search_data = search_response.json()
-    
-    try:
-        empire_data = search_data["nodes"][1]["data"]
-        if str.lower(empire_data[4]) != str.lower(empire_name):
-            print(f"Empire {empire_name} not found in search results.")
-            return None
-        empire_id = empire_name[3]  # index 3 = entityId
-        print(f"Found empire ID: {empire_id}")
-    except (KeyError, IndexError, TypeError):
-        print("Error: Unable to extract player ID from search response.")
-        return None
-    
-    
-    url = f"https://bitjita.com/empires/{empire_id}/__data.json"
-    response = requests.get(url)
-    data = response.json()
+    search_url = f"https://bitjita.com/empires/__data.json?q={empire_name.replace(' ', '+')}"
+    search_response = call_api(search_url)
+    data = search_response.json()
     
     if "nodes" not in data or len(data["nodes"]) < 2:
-        print(f"Invalid data for empire ID {empire_id}.")
+        print(f"Invalid data for empire {empire_name}.")
         return None
     
     empire_data = data["nodes"][1]["data"]
+    empire_ref = data["nodes"][1]["data"][data["nodes"][1]["data"][1][0]]
     
     return {
-        "name": empire_data[empire_data[1]["name"]],
-        "members": len(empire_data[empire_data[0]["members"]]),
-        "owner": empire_data[empire_data[empire_data[empire_data[0]["members"]][0]]["playerName"]]
+        "name": empire_data[empire_ref["name"]],
+        "members": empire_data[empire_ref["memberCount"]],
+        "owner": empire_data[empire_ref["leader"]]
     }

@@ -98,7 +98,7 @@ async def check_empires(ctx):
     empires.sort(key=lambda x: x["members"], reverse=True)
     string = ""
     for empire in empires:
-        string += f"{empire['name']} - {empire['members']} members, owned by {empire}{empire['owner_mention']}\n"
+        string += f"{empire['name']} - {empire['members']} members, owned by {empire["owner"]}{empire['owner_mention']}\n"
     
     if len(string) > 2000:
         # If the string is too long, split it into multiple messages
