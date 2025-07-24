@@ -100,7 +100,12 @@ async def check_empires(ctx):
     for empire in empires:
         string += f"{empire['name']} - {empire['members']} members, owned by {empire}{empire['owner_mention']}\n"
     
-    await ctx.send(string)
+    if len(string) > 2000:
+        # If the string is too long, split it into multiple messages
+        for i in range(0, len(string), 2000):
+            await ctx.send(string[i:i+2000])
+    else:
+        await ctx.send(string)
 
 @bot.check
 async def check_blacklist(ctx:commands.Context):
