@@ -92,7 +92,7 @@ async def check_empires(ctx):
             empires.append(empire_data)
         else:
             print(f"Empire {empire} not found or has no data.")
-            empires.append({"name":empire,"members":0,"owner":None})
+            empires.append({"name":empire,"members":0,"owner":"NOBODY","owner_mention":""})
 
     
     empires.sort(key=lambda x: x["members"], reverse=True)
