@@ -2,7 +2,7 @@ import discord, discord.ext, os, json, datetime
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from Helpers import constants,data,functions
+from Helpers import constants,data,functions,server
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -75,6 +75,32 @@ async def synctree(ctx,glob:bool=False):
 async def cmdline(ctx,query):
     data.command_line(query)
     await ctx.reply("Query processed.",ephemeral=True)
+    
+@bot.command(name='checkempires')
+@commands.is_owner()
+async def check_empires(ctx):
+    empires = []
+    for empire in constants.r6_empires:
+        empire_data = server.get_empire_data(empire)
+        if empire_data:
+            user = data.GetOne("users", {"username": empire_data["owner"]})
+            if user:
+                empire_data["owner_mention"] = f' (<@{user["user_id"]}>)'
+            else:
+                empire_data["owner_mention"] = ""
+            
+            empires.append(empire_data)
+        else:
+            print(f"Empire {empire} not found or has no data.")
+            empires.append({"name":empire,"members":0,"owner":None})
+
+    
+    empires.sort(key=lambda x: x["members"], reverse=True)
+    string = ""
+    for empire in empires:
+        string += f"{empire['name']} - {empire['members']} members, owned by {empire}{empire['owner_mention']}\n"
+    
+    ctx.send(string)
 
 @bot.check
 async def check_blacklist(ctx:commands.Context):

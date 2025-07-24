@@ -104,5 +104,35 @@ def get_leaderboard(profession:str,filter=None):
     
     return users
 
+def get_empire_data(empire_name):
+    search_url = f"https://bitjita.com/empires/__data.json?q={empire_name}"
+    search_response = requests.get(search_url)
+    search_data = search_response.json()
+    
+    try:
+        empire_data = search_data["nodes"][1]["data"]
+        if str.lower(empire_data[4]) != str.lower(empire_name):
+            print(f"Empire {empire_name} not found in search results.")
+            return None
+        empire_id = empire_name[3]  # index 3 = entityId
+        print(f"Found empire ID: {empire_id}")
+    except (KeyError, IndexError, TypeError):
+        print("Error: Unable to extract player ID from search response.")
+        return None
     
     
+    url = f"https://bitjita.com/empires/{empire_id}/__data.json"
+    response = requests.get(url)
+    data = response.json()
+    
+    if "nodes" not in data or len(data["nodes"]) < 2:
+        print(f"Invalid data for empire ID {empire_id}.")
+        return None
+    
+    empire_data = data["nodes"][1]["data"]
+    
+    return {
+        "name": empire_data[empire_data[1]["name"]],
+        "members": len(empire_data[empire_data[0]["members"]]),
+        "owner": empire_data[empire_data[empire_data[empire_data[0]["members"]][0]]["playerName"]]
+    }
