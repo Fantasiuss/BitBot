@@ -10,6 +10,8 @@ database_path = os.path.join(os.path.dirname(__file__), '../../database/data.db'
 
 blacklist = []
 
+r6_empires = ["Ludens Empire", "Jakyls of the Coast", "Yggdrasil", "Hold My Beer", "Tidehold", "The Commonwealth", "Twiggdrasil", "Sea Serpent Syndicate", "High Perch", "Daybreak", "Ithacan Thalassocracy", "Spacefaring Felinids", "Its Free Emil Estate", "Forsaken Nephilim Ascendancy", "The Golden Sands", "The Kitchen Table", "Fintastic Friends", "Wits End", "Ashfall", "KOTONOE Shrine", "Pepi Trade Federation", "Natural Selection", "The Free City of Wayrest", "The Fallen", "Bloodbourne Reach", "Plague Garden"]
+
 class ListStorage():
     def __init__(self,args:list[str] = []):
         self._list:list[str] = args
