@@ -70,23 +70,17 @@ class PlayerInformation:
 def get_player_info(username):
     logger.debug("Fetching player info for:", username)
     # Step 1: Get the player ID from search results
-    search_url = f"https://bitjita.com/players/__data.json?q={username}"
+    search_url = f"https://bitjita.com/api/players?q={username}"
     search_response = call_api(search_url)
     search_data = search_response.json()
 
-    try:
-        player_data = search_data["nodes"][1]["data"]
-        if str.lower(player_data[4]) != str.lower(username):
-            logger.debug(f"Username {username} not found in search results.")
-            return None
-        player_id = player_data[3]  # index 3 = entityId
-        logger.debug(f"Found player ID: {player_id}")
-    except (KeyError, IndexError, TypeError):
-        logger.debug("Error: Unable to extract player ID from search response.")
+    player_id = search_data["players"][0]["entityId"] if search_data["players"] else None
+    if not player_id:
+        logger.debug(f"Player {username} not found.")
         return None
 
     # Step 2: Get the full player info using the ID
-    info_url = f"https://bitjita.com/players/{player_id}/__data.json"
+    info_url = f"https://bitjita.com/api/players/{player_id}"
     info_response = call_api(info_url)
     info_data = info_response.json()
 
@@ -94,30 +88,20 @@ def get_player_info(username):
 
 def get_leaderboard(profession:str,filter=None):
     profession_id = profession_ids[profession.capitalize()]
-    url = f"https://bitjita.com/skills/__data.json?sortBy={profession_id}&sortOrder=desc&page=1"
+    url = f"https://bitjita.com/api/skills/leaderboard?sortBy={profession_id}&sortOrder=desc&page=1"
     
     response = call_api(url)
     data = response.json()
     
-    users = []
-    
-    for i in range(10):
-        ref = data["nodes"][1]["data"][1][i]
-        username = data["nodes"][1]["data"][data["nodes"][1]["data"][ref]["username"]]
-        skillref = data["nodes"][1]["data"][data["nodes"][1]["data"][ref]["skills"]]
-        level = data["nodes"][1]["data"][skillref[str(profession_id)]]
-        
-        users.append((username,level))
-    
-    return users
+    return data["players"][:10]
 
 def get_empire_data(empire_name):
-    search_url = f"https://bitjita.com/empires/__data.json?q={empire_name.replace(' ', '+')}"
+    search_url = f"https://bitjita.com/api/empires/?q={empire_name.replace(' ', '+')}"
     search_response = call_api(search_url)
     search_data = search_response.json()
     
-    if "nodes" not in search_data or len(search_data["nodes"]) < 2:
-        logger.debug(f"Invalid search data for empire {empire_name}.")
+    if not search_data["nodes"]:
+        logger.debug(f"Empire {empire_name} not found.")
         return None
     
     empire_id = search_data["nodes"][1]["data"][3]

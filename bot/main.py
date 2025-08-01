@@ -27,7 +27,6 @@ class BitBot(commands.Bot):
         logger.debug(f'Logged in as {self.user.name} (ID: {self.user.id})')
         logger.debug('------')
         for guild in self.guilds:
-            
             logger.debug(f'Connected to guild: {guild.name} (ID: {guild.id})')
             data.command_line(f"INSERT OR IGNORE INTO guilds (guild_id) VALUES ({guild.id})")
 
@@ -94,7 +93,6 @@ async def check_empires(ctx):
         else:
             logger.debug(f"Empire {empire} not found or has no data.")
             empires.append({"name":empire,"members":0,"owner":"NOBODY","owner_mention":""})
-
     
     empires.sort(key=lambda x: x["members"], reverse=True)
     string = ""

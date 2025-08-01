@@ -7,7 +7,6 @@ class VerificationCog(commands.Cog):
     def __init__(self):
         self.bot = constants.bot
 
-    '''TODO: REDO THIS WHOLE THING
     @commands.hybrid_command()
     @checks.is_admin()
     async def verification_embed(self, ctx: commands.Context):
@@ -52,7 +51,7 @@ class VerificationCog(commands.Cog):
             pass
         
         data.Update("verification_messages", {"guild_id": ctx.guild.id},{"channel_id": ctx.channel.id, "message_id": message.id})
-        await ctx.interaction.followup.send("Verification embed created successfully.", ephemeral=True)'''
+        await ctx.interaction.followup.send("Verification embed created successfully.", ephemeral=True)
         
         
     
