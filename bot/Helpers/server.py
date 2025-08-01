@@ -100,8 +100,12 @@ def get_empire_data(empire_name):
     search_response = call_api(search_url)
     search_data = search_response.json()
     
-    if not search_data["nodes"]:
-        logger.debug(f"Empire {empire_name} not found.")
+    try:
+        if not search_data["nodes"]:
+            logger.debug(f"Empire {empire_name} not found in search results.")
+            return None
+    except KeyError:
+        logger.debug(f"Unexpected response format for empire search: {search_data}")
         return None
     
     empire_id = search_data["nodes"][1]["data"][3]
