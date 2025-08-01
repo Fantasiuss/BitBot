@@ -101,14 +101,14 @@ def get_empire_data(empire_name):
     search_data = search_response.json()
     
     try:
-        if not search_data["nodes"]:
+        if not search_data["empires"] or len(search_data["empires"]) < 1:
             logger.debug(f"Empire {empire_name} not found in search results.")
             return None
     except KeyError:
         logger.debug(f"Unexpected response format for empire search: {search_data}")
         return None
     
-    empire_id = search_data["nodes"][1]["data"][3]
+    empire_id = search_data["empires"][0]["entityId"]
     
     url = f"https://bitjita.com/empires/{empire_id}/__data.json"
     response = call_api(url)
