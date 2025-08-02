@@ -30,6 +30,29 @@ class BitBot(commands.Bot):
             logger.debug(f'Connected to guild: {guild.name} (ID: {guild.id})')
             data.command_line(f"INSERT OR IGNORE INTO guilds (guild_id) VALUES ({guild.id})")
 
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("You don't have the necessary permissions to use this command.")
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(f"Please provide all required arguments. Usage: {ctx.command.usage}")
+        elif isinstance(error, commands.CommandNotFound):
+            await ctx.send("This command does not exist. Please check the command name and try again.")
+        elif isinstance(error, commands.BotMissingPermissions):
+            await ctx.send("I don't have the necessary permissions to execute this command.")
+        elif isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(f"This command is on cooldown. Please try again in {error.retry_after:.2f} seconds.")
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send("There was an error with your input. Please check and try again.")
+        elif isinstance(error, discord.Forbidden):
+            await ctx.send("I do not have permission to perform this action.")
+        elif isinstance(error, ValueError):
+            await ctx.send(f"Value error: {str(error)}")
+            
+        else:
+            # For unhandled errors, log them or send a generic message
+            logger.error(f"Unhandled error in command {ctx.command}: {error}")
+            await ctx.send("An unexpected error occurred. Please DM the bot owner (Fantasiuss) if this issue persists.")
+
 bot = BitBot()
 
 @discord.app_commands.context_menu(name="View Profile")

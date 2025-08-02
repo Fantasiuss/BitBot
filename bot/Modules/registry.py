@@ -77,8 +77,15 @@ class RegistryCog(commands.Cog):
             return await ctx.send(f"The username `{name_data["username"]}` has already been linked. Please DM Fantasiuss for conflicts.", ephemeral=True)
         
         data.Update("users", {"user_id": ctx.author.id}, {"username": username, "region":0})
-        data.update_database(username)
+        try: data.update_database(username)
+        except Exception as e:
+            logger.error(f"Failed to link for {username}: {e}")
+            data.Remove("users", {"user_id": ctx.author.id})
+            return await ctx.interaction.followup.send(f"Failed to link your account to `{username}`. Please try again later.", ephemeral=True)
+        
+        
         return await ctx.interaction.followup.send(f"Your account has been linked to `{username}`. Use `/profile` to view your profile.", ephemeral=True)
+    
     
     @commands.hybrid_command(description="Unlink your Discord account from your Bitcraft user.")
     async def unlink(self,ctx):
