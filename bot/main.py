@@ -125,9 +125,9 @@ async def check_empires(ctx):
     if len(string) > 2000:
         # If the string is too long, split it into multiple messages
         for i in range(0, len(string), 2000):
-            await ctx.send(string[i:i+2000])
+            await ctx.send(embed=discord.Embed(description=string[i:i+2000], color=discord.Color.blue()))
     else:
-        await ctx.send(string)
+        await ctx.send(embed=discord.Embed(description=string, color=discord.Color.blue()))
 
 @bot.check
 async def check_blacklist(ctx:commands.Context):
