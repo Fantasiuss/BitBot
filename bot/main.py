@@ -50,7 +50,7 @@ class BitBot(commands.Bot):
             
         else:
             # For unhandled errors, log them or send a generic message
-            logger.error(f"Unhandled error in command {ctx.command}: {error}, {error.__traceback__}")
+            logger.error(f"Unhandled error in command {ctx.command}: {error}, {error.with_traceback()}")
             await ctx.send("An unexpected error occurred. Please DM the bot owner (Fantasiuss) if this issue persists.")
 
 bot = BitBot()
