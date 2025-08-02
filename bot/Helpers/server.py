@@ -1,6 +1,15 @@
-import requests,math
+import requests,math,os
 from ratelimit import limits, sleep_and_retry
 from loguru import logger
+from dotenv import load_dotenv
+
+import urllib3.util
+from websockets import Subprotocol
+from websockets.exceptions import WebSocketException
+from websockets.sync.client import connect
+
+load_dotenv()
+bitcraft_token = os.getenv('BITCRAFT_TOKEN')
 
 profession_ids = {
     "Carpentry": 3,
@@ -45,14 +54,12 @@ class PlayerInformation:
         self.rawdata = get_player_info(username)
         if not self.rawdata:
             raise ValueError("Invalid username or player not found.")
-        self.data = self.rawdata["nodes"][1]["data"]
+        self.data = self.rawdata["player"]
         
-        self.reference = self.data[1]
-        
-        self.username = self.data[self.reference["username"]]
-        self.skillmap = self.data[self.reference["skillMap"]]
-        self.claims = ", ".join([self.data[self.data[x]["name"]] for x in self.data[self.reference["claims"]]])
-        self.empires = ", ".join([self.data[self.data[x]["empireName"]] for x in self.data[self.reference["empireMemberships"]]])
+        self.username = self.data["username"]
+        self.skillmap = self.data["skillMap"]
+        self.claims = ", ".join(x["name"] for x in self.data["claims"])
+        self.empires = ", ".join(x["empireName"] for x in self.data["empireMemberships"])
         
         self.skillexp = {
             # Here's how the skillmap works. self.skillmap is a dictionary of 'skill #1 is item #'
@@ -61,9 +68,9 @@ class PlayerInformation:
         }
         
         for skill_id, skill_info in self.skillmap.items():
-            logger.debug(f"Skill {self.data[self.data[skill_info]["name"]]}: {self.data[self.data[int(skill_info)]["id"] - 1]}, ({skill_id,skill_info})")
-            if(self.data[self.data[skill_info]["name"]] == "ANY"): continue
-            self.skillexp[self.data[self.data[skill_info]["name"]]] = self.data[self.data[int(skill_info)]["id"] - 1]
+            if(skill_info["name"] == "ANY"): continue
+            xp:list = {entry["skill_id"]:entry["quantity"] for entry in self.data["experience"]}
+            self.skillexp[skill_info["name"]] = xp[skill_info["id"]]
             
         self.skills = {skill: level_from_total_xp(xp) for skill, xp in self.skillexp.items()}
 
@@ -121,3 +128,33 @@ def get_empire_data(empire_name):
         "members": len(empire_data[empire_data[0]["members"]]),
         "owner": empire_data[empire_data[empire_data[empire_data[0]["members"]][0]]["playerName"]],
     }
+    
+
+# Code to get token
+def send_access_code(email):
+    url = f"https://api.bitcraftonline.com/authentication/request-access-code?email={email}"
+    response = requests.post(url)
+    
+    if response.status_code == 200:
+        return True
+    else:
+        logger.error(f"Failed to get player token for {email}: {response.status_code} - {response.text}")
+        return False
+
+def get_player_token(email, access_code):
+    url = f"https://api.bitcraftonline.com/authentication/authenticate?email={email}&accessCode={access_code}"
+    response = requests.post(url)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error(f"Failed to get player token for {email}: {response.status_code} - {response.text}")
+        return None
+
+code = ""
+email = ""
+if email:
+    if code:
+        print(get_player_token(email,code))
+    else:
+        send_access_code(email)
