@@ -1,7 +1,8 @@
-import discord, discord.ext, os, json, datetime
+import discord, discord.ext, os, json, datetime, traceback
 from discord.ext import commands
 from dotenv import load_dotenv
 from loguru import logger
+from dateutil import parser
 
 from Helpers import constants,data,functions,server
 
@@ -30,7 +31,7 @@ class BitBot(commands.Bot):
             logger.debug(f'Connected to guild: {guild.name} (ID: {guild.id})')
             data.command_line(f"INSERT OR IGNORE INTO guilds (guild_id) VALUES ({guild.id})")
 
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx, error:Exception):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("You don't have the necessary permissions to use this command.")
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -50,7 +51,7 @@ class BitBot(commands.Bot):
             
         else:
             # For unhandled errors, log them or send a generic message
-            logger.error(f"Unhandled error in command {ctx.command}: {error}, {error.with_traceback()}")
+            logger.error(f"Unhandled error in command {ctx.command}: {error}, {traceback.format_exc()}")
             await ctx.send("An unexpected error occurred. Please DM the bot owner (Fantasiuss) if this issue persists.")
 
 bot = BitBot()
@@ -112,6 +113,10 @@ async def check_empires(ctx):
             else:
                 empire_data["owner_mention"] = ""
             
+            empire_data["members"] = len([x for x in empire_data.get("members", []) if x["lastLoginTimestamp"] \
+and x["lastLoginTimestamp"] != "0" \
+and parser.parse(x["lastLoginTimestamp"]) > datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30)])
+            
             empires.append(empire_data)
         else:
             logger.debug(f"Empire {empire} not found or has no data.")
@@ -125,9 +130,9 @@ async def check_empires(ctx):
     if len(string) > 2000:
         # If the string is too long, split it into multiple messages
         for i in range(0, len(string), 2000):
-            await ctx.send(embed=discord.Embed(description=string[i:i+2000], color=discord.Color.blue()))
+            await ctx.send(embed=discord.Embed(title="Top Empires in R3",description=string[i:i+2000], color=discord.Color.blue()))
     else:
-        await ctx.send(embed=discord.Embed(description=string, color=discord.Color.blue()))
+        await ctx.send(embed=discord.Embed(title="Top Empires in R3",description=string, color=discord.Color.blue()))
 
 @bot.check
 async def check_blacklist(ctx:commands.Context):

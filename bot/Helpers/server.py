@@ -35,7 +35,10 @@ profession_ids = {
 @sleep_and_retry
 @limits(calls=5, period=1)
 def call_api(url):
-    return requests.get(url)
+    headers = {
+        "User-Agent": "BitBot/1.0"
+    }
+    return requests.get(url, headers=headers)
 
 def level_from_total_xp(total_xp):
     """
@@ -117,16 +120,14 @@ def get_empire_data(empire_name):
     
     empire_id = search_data["empires"][0]["entityId"]
     
-    url = f"https://bitjita.com/empires/{empire_id}/__data.json"
+    url = f"https://bitjita.com/api/empires/{empire_id}"
     response = call_api(url)
     data = response.json()
-    empire_data = data["nodes"][1]["data"]
-    empire_ref = data["nodes"][1]["data"][1]
     
     return {
-        "name": empire_data[empire_ref["name"]],
-        "members": len(empire_data[empire_data[0]["members"]]),
-        "owner": empire_data[empire_data[empire_data[empire_data[0]["members"]][0]]["playerName"]],
+        "name": data["empire"]["name"],
+        "members": data["members"],
+        "owner": data["members"][0]["playerName"] if data["members"] else "NOBODY",
     }
     
 
