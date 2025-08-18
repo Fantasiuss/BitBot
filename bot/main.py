@@ -33,21 +33,23 @@ class BitBot(commands.Bot):
 
     async def on_command_error(self, ctx, error:Exception):
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send("You don't have the necessary permissions to use this command.")
+            await ctx.send("You don't have the necessary permissions to use this command.",ephemeral=True)
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f"Please provide all required arguments. Usage: {ctx.command.usage}")
+            await ctx.send(f"Please provide all required arguments. Usage: {ctx.command.usage}",ephemeral=True)
         elif isinstance(error, commands.CommandNotFound):
-            await ctx.send("This command does not exist. Please check the command name and try again.")
+            await ctx.send("This command does not exist. Please check the command name and try again.",ephemeral=True)
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send("I don't have the necessary permissions to execute this command.")
+            await ctx.send("I don't have the necessary permissions to execute this command.",ephemeral=True)
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send(f"This command is on cooldown. Please try again in {error.retry_after:.2f} seconds.")
+            await ctx.send(f"This command is on cooldown. Please try again in {error.retry_after:.2f} seconds.",ephemeral=True)
         elif isinstance(error, commands.UserInputError):
-            await ctx.send("There was an error with your input. Please check and try again.")
+            await ctx.send("There was an error with your input. Please check and try again.",ephemeral=True)
         elif isinstance(error, discord.Forbidden):
-            await ctx.send("I do not have permission to perform this action.")
+            await ctx.send("I do not have permission to perform this action.",ephemeral=True)
         elif isinstance(error, ValueError):
-            await ctx.send(f"Value error: {str(error)}")
+            await ctx.send(f"Value error: {str(error)}",ephemeral=True)
+        elif isinstance(error,json.JSONDecodeError):
+            await ctx.send("There was an error processing the data. BitJita may be having issues.",ephemeral=True)
             
         else:
             # For unhandled errors, log them or send a generic message
